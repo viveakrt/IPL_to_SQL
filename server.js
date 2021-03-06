@@ -3,6 +3,7 @@ const mysql = require("mysql");
 const csv = require("csv-parser");
 const fs = require("fs");
 const dotenv = require('dotenv');
+const { stringify } = require("querystring");
 
 const app = express();
 dotenv.config();
@@ -24,7 +25,25 @@ db.connect((err) => {
 	console.log("MySql Connected...");
 });
 
+
+db.query('DROP TABLE IF EXISTS deliveries',(err, result, field) => {
+    if (err) {
+        throw err;
+    }
+    console.log("DELETED TABLES");
+}
+);
+
+db.query('DROP TABLE IF EXISTS matches',(err, result, field) => {
+    if (err) {
+        throw err;
+    }
+    console.log("DELETED TABLES");
+}
+);
+
 function matches() {
+
     let sql = `CREATE TABLE IF NOT EXISTS matches (
         id INT NOT NULL AUTO_INCREMENT,
         season YEAR,
@@ -58,7 +77,8 @@ function matches() {
 matches();
 
 function deliveries() {
-    let sql = `CREATE TABLE IF NOT EXISTS deliveries (
+    let sql = `
+        CREATE TABLE IF NOT EXISTS deliveries (
         id INT NOT NULL AUTO_INCREMENT,
         match_id INT,
         inning INT,
@@ -94,36 +114,39 @@ function deliveries() {
 }
 deliveries();
 
-function insertInto(table, data) {
-    let sql = `INSERT INTO ${table} SET ?`;
-    db.query(sql, data, (err, result, field) => {
+function insertInto(table, data , column = '' ) {
+    let sql = `INSERT INTO ${table}  ${column} VALUES ?`;
+    db.query(sql, [data], (err, result, field) => {
         if (err) {
-            throw err;
-        }
+            console.log(err);
+            
+        }else{
 
         console.log(`data added into table ${table}`);
+        }
     });
 }
 
+function objValue(data){
+    let val = data.map(ele => Object.values(ele));
+    return val;
+}
 
 fs.createReadStream("./src/matches.csv")
 	.pipe(csv())
 	.on("data", (data) => results.push(data))
 	.on("end", () => {
-        results.forEach((match) => {
-            insertInto('matches', match);
-        });
+        let match = objValue(results);
+        insertInto('matches', match);
+        
 	});
 
 fs.createReadStream("./src/deliveries.csv")
 	.pipe(csv())
 	.on("data", (data) => resultDeliveries.push(data))
-	.on("end", () => {
-        console.log(resultDeliveries);
-        
-        resultDeliveries.forEach((deli) => {
-            insertInto('deliveries', deli);
-        });
+	.on("end", () => {        
+        let deli = objValue(resultDeliveries);
+        insertInto('deliveries', deli , '(match_id,inning,batting_team,bowling_team,overs,ball,batsman,non_striker,bowler,is_super_over,wide_runs,bye_runs,legbye_runs,noball_runs,penalty_runs,batsman_runs,extra_runs,total_runs,player_dismissed,dismissal_kind,fielder)');
 	});
 
 
