@@ -4,11 +4,11 @@ const csv = require("csv-parser");
 const fs = require("fs");
 const dotenv = require('dotenv');
 
+const app = express();
 dotenv.config();
 
 const results = [];
 const resultDeliveries = [];
-
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -23,10 +23,6 @@ db.connect((err) => {
 	}
 	console.log("MySql Connected...");
 });
-
-const app = express();
-
-
 
 function matches() {
     let sql = `CREATE TABLE IF NOT EXISTS matches (
@@ -61,6 +57,42 @@ function matches() {
 }
 matches();
 
+function deliveries() {
+    let sql = `CREATE TABLE IF NOT EXISTS deliveries (
+        id INT NOT NULL AUTO_INCREMENT,
+        match_id INT,
+        inning INT,
+        batting_team VARCHAR(90),
+        bowling_team VARCHAR(90),
+        overs INT(9),
+        ball INT(9),
+        batsman VARCHAR(90),
+        non_striker VARCHAR(90),
+        bowler VARCHAR(90),
+        is_super_over INT,
+        wide_runs INT,
+        bye_runs INT,
+        legbye_runs INT,
+        noball_runs INT,
+        penalty_runs INT,
+        batsman_runs INT,
+        extra_runs INT,
+        total_runs INT,
+        player_dismissed VARCHAR(90),
+        dismissal_kind VARCHAR(90),
+        fielder VARCHAR(90),
+        FOREIGN KEY (match_id) REFERENCES matches(id),
+        PRIMARY KEY (id)
+    );`;
+
+    db.query(sql, (err, result, field) => {
+        if (err) {
+            throw err;
+        }
+        console.log('deliveries table is created');
+    });
+}
+deliveries();
 
 function insertInto(table, data) {
     let sql = `INSERT INTO ${table} SET ?`;
@@ -78,21 +110,21 @@ fs.createReadStream("./src/matches.csv")
 	.pipe(csv())
 	.on("data", (data) => results.push(data))
 	.on("end", () => {
-		console.log(results);
         results.forEach((match) => {
             insertInto('matches', match);
         });
-
 	});
-//app.get("/get", (req, res) => {
-// 	let sql = "SELECT * FROM matches";
-// 	let query = db.query(sql, (err, results) => {
-// 		if (err) {
-// 			throw err;
-// 		}
-// 		console.log(results);
-// 		res.send("Fetched..");
-// 	});
-// });
+
+fs.createReadStream("./src/deliveries.csv")
+	.pipe(csv())
+	.on("data", (data) => resultDeliveries.push(data))
+	.on("end", () => {
+        console.log(resultDeliveries);
+        
+        resultDeliveries.forEach((deli) => {
+            insertInto('deliveries', deli);
+        });
+	});
+
 
 app.listen("3000", () => console.log("Server started on port 3000"));
