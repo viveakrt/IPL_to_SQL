@@ -1,24 +1,21 @@
-const { db,PORT }  = require('./dbconn.js');
+const { db, PORT } = require("./dbconn.js");
 
-db.query('DROP TABLE IF EXISTS deliveries',(err, result, field) => {
-    if (err) {
-        throw err;
-    }
-    console.log("DELETED TABLES");
-}
-);
+db.query("DROP TABLE IF EXISTS deliveries", (err, result, field) => {
+	if (err) {
+		throw err;
+	}
+	console.log("DELETED TABLES");
+});
 
-db.query('DROP TABLE IF EXISTS matches',(err, result, field) => {
-    if (err) {
-        throw err;
-    }
-    console.log("DELETED TABLES");
-}
-);
+db.query("DROP TABLE IF EXISTS matches", (err, result, field) => {
+	if (err) {
+		throw err;
+	}
+	console.log("DELETED TABLES");
+});
 
 function matches() {
-
-    let sql = `CREATE TABLE IF NOT EXISTS matches (
+	let sql = `CREATE TABLE IF NOT EXISTS matches (
         id INT NOT NULL AUTO_INCREMENT,
         season YEAR,
         city VARCHAR(30),
@@ -40,17 +37,16 @@ function matches() {
         PRIMARY KEY (id)
     )`;
 
-    db.query(sql, (err, result, field) => {
-        if (err) {
-            throw err;
-        }
-        console.log("created matches table");
-    });
-
+	db.query(sql, (err, result, field) => {
+		if (err) {
+			throw err;
+		}
+		console.log("created matches table");
+	});
 }
 
 function deliveries() {
-    let sql = `
+	let sql = `
         CREATE TABLE IF NOT EXISTS deliveries (
         id INT NOT NULL AUTO_INCREMENT,
         match_id INT,
@@ -78,31 +74,28 @@ function deliveries() {
         PRIMARY KEY (id)
     );`;
 
-    db.query(sql, (err, result, field) => {
-        if (err) {
-            throw err;
-        }
-        console.log('deliveries table is created');
-    });
+	db.query(sql, (err, result, field) => {
+		if (err) {
+			console.log(err);
+		}
+		console.log("deliveries table is created");
+	});
 }
 
-
-function insertInto(table, data , column = '' ) {
-    let sql = `INSERT INTO ${table}  ${column} VALUES ?`;
-    db.query(sql, [data], (err, result, field) => {
-        if (err) {
-            console.log(err);
-            
-        }else{
-
-        console.log(`data added into table ${table} DONE`);
-        }
-    });
+function insertInto(table, data, column = "") {
+	let sql = `INSERT INTO ${table}  ${column} VALUES ?`;
+	db.query(sql, [data], (err, result, field) => {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log(`data added into table ${table} DONE`);
+		}
+	});
 }
 
-module.exports={
-    matches,
-    deliveries,
-    insertInto,
-    PORT
+module.exports = {
+	matches,
+	deliveries,
+	insertInto,
+	PORT,
 };
