@@ -2,14 +2,14 @@ const { db, PORT } = require("./dbconn.js");
 
 db.query("DROP TABLE IF EXISTS deliveries", (err, result, field) => {
 	if (err) {
-		throw err;
+		console.error(err);
 	}
 	console.log("DELETED TABLES");
 });
 
 db.query("DROP TABLE IF EXISTS matches", (err, result, field) => {
 	if (err) {
-		throw err;
+		console.error(err);
 	}
 	console.log("DELETED TABLES");
 });
@@ -39,7 +39,7 @@ function matches() {
 
 	db.query(sql, (err, result, field) => {
 		if (err) {
-			throw err;
+			console.error(err);
 		}
 		console.log("created matches table");
 	});
